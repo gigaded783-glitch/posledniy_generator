@@ -53,7 +53,9 @@ function drawPlayer(cx,cy){
    ctx.fillStyle='#0c1714';ctx.fillRect(2,-11,7,8);
    ctx.fillStyle='#ffbd35';ctx.fillRect(5,-9,2,3);
    ctx.fillStyle='#f09a22';ctx.fillRect(-6,-13,5,2);
-   ctx.fillStyle='#283b35';ctx.fillRect(-1,1,4,6);\n   // Винтовка в руках, как на боковом кадре референса.\n   ctx.fillStyle='#26343b';ctx.fillRect(4,-1,13,4);ctx.fillStyle='#71858a';ctx.fillRect(7,-2,7,2);ctx.fillStyle='#e59a35';ctx.fillRect(9,-1,2,2);ctx.fillStyle='#10191d';ctx.fillRect(15,0,3,2);
+   ctx.fillStyle='#283b35';ctx.fillRect(-1,1,4,6);
+   // Винтовка в руках, как на боковом кадре референса.
+   ctx.fillStyle='#26343b';ctx.fillRect(4,-1,13,4);ctx.fillStyle='#71858a';ctx.fillRect(7,-2,7,2);ctx.fillStyle='#e59a35';ctx.fillRect(9,-1,2,2);ctx.fillStyle='#10191d';ctx.fillRect(15,0,3,2);
  }else if(facing==='up'){
    // Вид со спины: визор и глаза не видны.
    ctx.fillStyle='#07120d';ctx.fillRect(-7,5,5,10);ctx.fillRect(2,5,5,10);
@@ -74,7 +76,9 @@ function drawPlayer(cx,cy){
    ctx.fillStyle='#0c1714';ctx.fillRect(-7,-12,14,9);
    ctx.fillStyle='#ffbd35';ctx.fillRect(-5,-9,2,3);ctx.fillRect(3,-9,2,3);
    ctx.fillStyle='#f09a22';ctx.fillRect(-9,-13,4,2);ctx.fillRect(5,-13,4,2);
-   ctx.fillStyle='#283b35';ctx.fillRect(-2,1,4,6);ctx.fillStyle='#a0a38b';ctx.fillRect(5,3,3,3);\n   // Передняя часть винтовки видна у рук.\n   ctx.fillStyle='#26343b';ctx.fillRect(5,2,9,3);ctx.fillStyle='#71858a';ctx.fillRect(9,1,5,2);ctx.fillStyle='#e59a35';ctx.fillRect(8,2,2,2);
+   ctx.fillStyle='#283b35';ctx.fillRect(-2,1,4,6);ctx.fillStyle='#a0a38b';ctx.fillRect(5,3,3,3);
+   // Передняя часть винтовки видна у рук.
+   ctx.fillStyle='#26343b';ctx.fillRect(5,2,9,3);ctx.fillStyle='#71858a';ctx.fillRect(9,1,5,2);ctx.fillStyle='#e59a35';ctx.fillRect(8,2,2,2);
  }
  ctx.restore();
 }
