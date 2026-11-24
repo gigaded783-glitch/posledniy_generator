@@ -10,7 +10,7 @@
 <div class="overlay" id="intro"><div class="card"><h2>Станция «Полюс-7»</h2><p>Станция огромна и погружена во тьму. Найди 18 деталей и вернись к генератору.</p><p>У тебя 5 единиц здоровья, одна импульсная винтовка и два факела. Каждый факел горит 25 секунд. Дроны видны в свете факела, а невидимая тварь ориентируется на шум.</p><button id="start">Войти на станцию</button></div></div>
 <script>
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),T=32,MW=90,MH=70,VIEW_W=20,VIEW_H=12;
-let map=[],player,items=[],drones=[],beast,keys={},running=false,won=false,hp=5,torchCount=2,torchTime=0,torchOn=false,noise=0,noiseLevel=0,pulseCooldown=0,msg='',msgTime=0,gamepadLatch={a:false,b:false,y:false},facing='down';
+let map=[],player,items=[],drones=[],beast,keys={},running=false,won=false,hp=5,torchCount=2,torchTime=0,torchOn=false,noise=0,noiseLevel=0,pulseCooldown=0,msg='',msgTime=0,gamepadLatch={a:false,b:false,y:false},facing='down',playerMoving=false;
 const generator={x:4.5,y:4.5};
 function rand(n){return Math.floor(Math.random()*n)}
 function say(s){msg=s;msgTime=130}
@@ -32,7 +32,7 @@ function interact(){if(!running||won)return;if(Math.hypot(player.x-generator.x,p
 function toggleTorch(){if(!running)return;if(torchOn){torchOn=false;say('Факел выключен.')}else if(torchTime>0){torchOn=true;say('Факел снова горит.')}else if(torchCount>0){torchCount--;torchTime=25*60;torchOn=true;say('Факел зажжён: 25 секунд.')}else say('Факелов больше нет.')}
 function pulse(){if(!running||pulseCooldown>0)return;pulseCooldown=35;noiseLevel=Math.min(1,noiseLevel+.7);let targets=[...drones,beast];let hit=targets.find(a=>Math.hypot(player.x-a.x,player.y-a.y)<5.5);if(hit){hit.stun=150;say('Импульс временно остановил угрозу.')}else say('Импульс ушёл в темноту.');}
 function getPad(){let g=Array.from(navigator.getGamepads?navigator.getGamepads():[]).find(a=>a&&a.connected);document.getElementById('pad').textContent=g?'Геймпад: подключён':'Геймпад: нет';if(!g)return{x:0,y:0,a:false,b:false,yb:false};let x=Math.abs(g.axes[0]||0)>.22?Math.sign(g.axes[0]):0,y=Math.abs(g.axes[1]||0)>.22?Math.sign(g.axes[1]):0;if(g.buttons[14]?.pressed)x=-1;if(g.buttons[15]?.pressed)x=1;if(g.buttons[12]?.pressed)y=-1;if(g.buttons[13]?.pressed)y=1;return{x,y,a:!!g.buttons[0]?.pressed,b:!!(g.buttons[1]?.pressed||g.buttons[2]?.pressed),yb:!!g.buttons[3]?.pressed}}
-function update(){if(!running||won)return;let g=getPad(),dx=g.x,dy=g.y;if(keys.ArrowLeft||keys.a)dx--;if(keys.ArrowRight||keys.d)dx++;if(keys.ArrowUp||keys.w)dy--;if(keys.ArrowDown||keys.s)dy++;let l=Math.hypot(dx,dy)||1;if(dx||dy){if(Math.abs(dx)>Math.abs(dy))facing=dx<0?'left':'right';else facing=dy<0?'up':'down';move(dx/l,dy/l);}
+function update(){if(!running||won)return;let g=getPad(),dx=g.x,dy=g.y;if(keys.ArrowLeft||keys.a)dx--;if(keys.ArrowRight||keys.d)dx++;if(keys.ArrowUp||keys.w)dy--;if(keys.ArrowDown||keys.s)dy++;let l=Math.hypot(dx,dy)||1;playerMoving=!!(dx||dy);if(playerMoving){if(Math.abs(dx)>Math.abs(dy))facing=dx<0?'left':'right';else facing=dy<0?'up':'down';move(dx/l,dy/l);}
 if(g.a&&!gamepadLatch.a)interact();if(g.b&&!gamepadLatch.b)pulse();if(g.yb&&!gamepadLatch.y)toggleTorch();gamepadLatch={a:g.a,b:g.b,y:g.yb};
 let moving=!!(dx||dy);noiseLevel=Math.max(0,noiseLevel-(moving?.0025:.006));if(moving)noiseLevel=Math.min(1,noiseLevel+(keys.Shift?.009:.002));noise=noiseLevel;
 if(torchOn){torchTime--;if(torchTime<=0){torchOn=false;say('Факел погас.')}}if(pulseCooldown>0)pulseCooldown--;
@@ -40,7 +40,7 @@ for(let d of drones){if(d.stun>0){d.stun--;continue}d.phase++;if(d.phase%22===0)
 if(noiseLevel>.36&&beast.stun<=0){beast.alert=Math.min(1,beast.alert+.012);if(Math.random()<.45){let vx=player.x-beast.x,vy=player.y-beast.y,n=Math.hypot(vx,vy)||1,nx=beast.x+vx/n*.055,ny=beast.y+vy/n*.055;if(!isWall(Math.floor(nx),Math.floor(beast.y)))beast.x=nx;if(!isWall(Math.floor(beast.x),Math.floor(ny)))beast.y=ny}}else beast.alert=Math.max(0,beast.alert-.003);if(beast.stun>0)beast.stun--;if(Math.hypot(player.x-beast.x,player.y-beast.y)<.7){hp--;beast.x=freeSpot(16).x;beast.y=freeSpot(16).y;noiseLevel=.1;say('Тварь настигла тебя! HP -1');if(hp<=0){running=false;say('Ты потерял сознание. Нажми «Заново».')}}
 }
 function drawPlayer(cx,cy){
- const x=Math.round(cx),y=Math.round(cy),step=Math.floor((performance.now()/130)%2);
+ const x=Math.round(cx),y=Math.round(cy),step=playerMoving?Math.floor((performance.now()/115)%2):0;
  ctx.save();ctx.translate(x,y);
  // Направление меняет вид шлема, визора, корпуса и шага.
  if(facing==='left'||facing==='right'){
@@ -53,7 +53,7 @@ function drawPlayer(cx,cy){
    ctx.fillStyle='#0c1714';ctx.fillRect(2,-11,7,8);
    ctx.fillStyle='#ffbd35';ctx.fillRect(5,-9,2,3);
    ctx.fillStyle='#f09a22';ctx.fillRect(-6,-13,5,2);
-   ctx.fillStyle='#283b35';ctx.fillRect(-1,1,4,6);
+   ctx.fillStyle='#283b35';ctx.fillRect(-1,1,4,6);\n   // Винтовка в руках, как на боковом кадре референса.\n   ctx.fillStyle='#26343b';ctx.fillRect(4,-1,13,4);ctx.fillStyle='#71858a';ctx.fillRect(7,-2,7,2);ctx.fillStyle='#e59a35';ctx.fillRect(9,-1,2,2);ctx.fillStyle='#10191d';ctx.fillRect(15,0,3,2);
  }else if(facing==='up'){
    // Вид со спины: визор и глаза не видны.
    ctx.fillStyle='#07120d';ctx.fillRect(-7,5,5,10);ctx.fillRect(2,5,5,10);
@@ -74,7 +74,7 @@ function drawPlayer(cx,cy){
    ctx.fillStyle='#0c1714';ctx.fillRect(-7,-12,14,9);
    ctx.fillStyle='#ffbd35';ctx.fillRect(-5,-9,2,3);ctx.fillRect(3,-9,2,3);
    ctx.fillStyle='#f09a22';ctx.fillRect(-9,-13,4,2);ctx.fillRect(5,-13,4,2);
-   ctx.fillStyle='#283b35';ctx.fillRect(-2,1,4,6);ctx.fillStyle='#a0a38b';ctx.fillRect(5,3,3,3);
+   ctx.fillStyle='#283b35';ctx.fillRect(-2,1,4,6);ctx.fillStyle='#a0a38b';ctx.fillRect(5,3,3,3);\n   // Передняя часть винтовки видна у рук.\n   ctx.fillStyle='#26343b';ctx.fillRect(5,2,9,3);ctx.fillStyle='#71858a';ctx.fillRect(9,1,5,2);ctx.fillStyle='#e59a35';ctx.fillRect(8,2,2,2);
  }
  ctx.restore();
 }
